@@ -1,0 +1,57 @@
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  nickname VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE groups (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  invite_code VARCHAR(20) UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE group_members (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL DEFAULT 'member',
+  joined_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(group_id, user_id)
+);
+
+CREATE TABLE schedules (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  title VARCHAR(200) NOT NULL,
+  start_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE attendance (
+  id SERIAL PRIMARY KEY,
+  schedule_id INTEGER NOT NULL REFERENCES schedules(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  checked BOOLEAN DEFAULT FALSE,
+  UNIQUE(schedule_id, user_id)
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  author_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(200) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE comments (
+  id SERIAL PRIMARY KEY,
+  post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  author_id INTEGER NOT NULL REFERENCES users(id),
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
