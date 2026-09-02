@@ -7,7 +7,9 @@ const pool = require('./db');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://study-group-app-eight.vercel.app'],
+}));
 app.use(express.json());
 
 // 서버 살아있는지 확인용
