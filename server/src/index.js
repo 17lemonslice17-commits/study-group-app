@@ -122,6 +122,76 @@ app.get('/api/groups', authenticateToken, async (req, res) => {
   }
 });
 
+// 특정 모임의 일정 목록 조회
+app.get('/api/groups/:groupId/schedules', authenticateToken, async (req, res) => {
+  const { groupId } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT s.*,
+        (SELECT COUNT(*) FROM attendance a WHERE a.schedule_id = s.id AND a.checked = true) AS attendee_count,
+        EXISTS(SELECT 1 FROM attendance a WHERE a.schedule_id = s.id AND a.user_id = $2 AND a.checked = true) AS my_attendance
+       FROM schedules s
+       WHERE s.group_id = $1
+       ORDER BY s.start_at ASC`,
+      [groupId, req.user.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+// 일정 등록
+app.post('/api/groups/:groupId/schedules', authenticateToken, async (req, res) => {
+  const { groupId } = req.params;
+  const { title, start_at } = req.body;
+
+  if (!title || !start_at) {
+    return res.status(400).json({ error: '제목과 일시를 입력해주세요.' });
+  }
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO schedules (group_id, title, start_at) VALUES ($1, $2, $3) RETURNING *',
+      [groupId, title, start_at]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+// 출석 체크 토글 (체크되어 있으면 해제, 아니면 체크)
+app.post('/api/schedules/:scheduleId/attendance', authenticateToken, async (req, res) => {
+  const { scheduleId } = req.params;
+
+  try {
+    const existing = await pool.query(
+      'SELECT * FROM attendance WHERE schedule_id = $1 AND user_id = $2',
+      [scheduleId, req.user.id]
+    );
+
+    if (existing.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO attendance (schedule_id, user_id, checked) VALUES ($1, $2, true)',
+        [scheduleId, req.user.id]
+      );
+    } else {
+      await pool.query(
+        'UPDATE attendance SET checked = NOT checked WHERE schedule_id = $1 AND user_id = $2',
+        [scheduleId, req.user.id]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`서버 실행 중: http://localhost:${PORT}`);
