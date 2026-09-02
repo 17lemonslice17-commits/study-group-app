@@ -22,15 +22,39 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 320, margin: '60px auto' }}>
-      <h2>로그인</h2>
-      <form onSubmit={handleSubmit}>
-        <input placeholder="이메일" value={email} onChange={(e) => setEmail(e.target.value)} /><br />
-        <input placeholder="비밀번호" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /><br />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit">로그인</button>
-      </form>
-      <p>계정이 없나요? <Link to="/signup">회원가입</Link></p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+        <h2 className="text-xl font-semibold text-slate-900 mb-1">로그인</h2>
+        <p className="text-sm text-slate-500 mb-6">모임장에 오신 걸 환영합니다</p>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            placeholder="비밀번호"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-indigo-700 transition"
+          >
+            로그인
+          </button>
+        </form>
+
+        <p className="text-sm text-slate-500 mt-4 text-center">
+          계정이 없나요?{' '}
+          <Link to="/signup" className="text-indigo-600 font-medium">회원가입</Link>
+        </p>
+      </div>
     </div>
   );
 }
